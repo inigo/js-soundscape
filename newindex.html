@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link rel="icon" href="data:,">
+</head>
+<body>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.38/Tone.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/lodash@4.17.21/lodash.min.js"></script>
+
+<button id="play-button">Play/Pause</button>
+<script>
+    const CMajorScale = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];
+
+    // See https://www.devbridge.com/articles/tonejs-coding-music-production-guide/
+
+    const addOctaveNumbers = (scale, octaveNumber) => scale.map(note => {
+        const firstOctaveNoteIndex = scale.indexOf('C') !== -1 ? scale.indexOf('C') : scale.indexOf('C#')
+        const noteOctaveNumber = scale.indexOf(note) < firstOctaveNoteIndex ? octaveNumber - 1 : octaveNumber;
+        return `${note}${noteOctaveNumber}`
+    });
+    const CMajorScaleWithOctave = addOctaveNumbers(CMajorScale, 4); //  Output ['C4', 'D4', 'E4', 'F4', 'G4', 'A4', 'B4'];
+
+
+    const constructMajorChord = (scale, octave, rootNote) => {
+        const scaleWithOctave = addOctaveNumbers(scale, octave);
+
+        const getNextChordNote = (note, nextNoteNumber) => {
+            const nextNoteInScaleIndex = scaleWithOctave.indexOf(note) + nextNoteNumber - 1;
+            let nextNote;
+            if (typeof (scaleWithOctave[nextNoteInScaleIndex]) !== 'undefined') {
+                nextNote = scaleWithOctave[nextNoteInScaleIndex];
+            } else {
+                nextNote = scaleWithOctave[nextNoteInScaleIndex - 7];
+                const updatedOctave = parseInt(nextNote.slice(1)) + 1;
+                nextNote = `${nextNote.slice(0, 1)}${updatedOctave}`;
+            }
+
+            return nextNote;
+        }
+
+        const thirdNote = getNextChordNote(rootNote, 3)
+        const fifthNote = getNextChordNote(rootNote, 5)
+        return [rootNote, thirdNote, fifthNote];
+    }
+
+    const IChord3 = constructMajorChord(CMajorScale, 3, 'C3');
+    const IIChord3 = constructMajorChord(CMajorScale, 3, 'D3');
+    const IIIChord3 = constructMajorChord(CMajorScale, 3, 'E3');
+    const IVChord3 = constructMajorChord(CMajorScale, 3, 'F3');
+    const VChord3 = constructMajorChord(CMajorScale, 3, 'G3');
+    const VIChord3 = constructMajorChord(CMajorScale, 3, 'A3');
+    const IChord4 = constructMajorChord(CMajorScale, 4, 'C4');
+    const IIChord4 = constructMajorChord(CMajorScale, 4, 'D4');
+    const IIIChord4 = constructMajorChord(CMajorScale, 4, 'E4');
+    const IVChord4 = constructMajorChord(CMajorScale, 4, 'F4');
+    const VChord4 = constructMajorChord(CMajorScale, 4, 'G4');
+    const VIChord4 = constructMajorChord(CMajorScale, 4, 'A4');
+    const IChord5 = constructMajorChord(CMajorScale, 5, 'C5');
+    const IIChord5 = constructMajorChord(CMajorScale, 5, 'D5');
+    const IIIChord5 = constructMajorChord(CMajorScale, 5, 'E5');
+    const IVChord5 = constructMajorChord(CMajorScale, 5, 'F5');
+    const VChord5 = constructMajorChord(CMajorScale, 5, 'G5');
+    const VIChord5 = constructMajorChord(CMajorScale, 5, 'A5');
+
+    const synth = new Tone.PolySynth(Tone.Synth, {
+        oscillator : {
+            type : "sawtooth"
+        }
+    }).toDestination();
+
+    Tone.Transport.bpm.value = 150;
+
+    const weightedNotes = [
+        [IChord3, 9], [IIChord3, 2], [IIIChord3, 3], [IVChord3, 8], [VChord3, 8], [VIChord3, 6],
+        [IChord4, 27], [IIChord4, 18], [IIIChord4, 16], [IVChord4, 27], [VChord4, 30], [VIChord4, 32],
+        [IChord5, 9], [IIChord5, 2], [IIIChord5, 3], [IVChord5, 8], [VChord5, 8], [VIChord5, 6],
+    ];
+
+    function weightedRandom(weightedNotes) {
+        const totalWeight = _.sum(weightedNotes.map( n => n[1]));
+        const rnd  = _.random(totalWeight, true);
+
+        let totalSoFar = 0;
+        for (const n of weightedNotes) {
+            totalSoFar += n[1];
+            if (totalSoFar >= rnd) return n[0];
+        }
+        return n.at(-1);
+    }
+
+    const numbers = (count) => { return [ ... Array(count).keys() ] }
+
+    const weightedChords = numbers(8).map(n => {
+        return {'time': n, 'note': weightedRandom(weightedNotes), 'duration': '2n'}
+    });
+
+
+    const part = new Tone.Part(function(time, note) {
+        synth.triggerAttackRelease(note.note, note.duration, time);
+    }, weightedChords).start(0);
+
+    document.getElementById("play-button").addEventListener("click", function() {
+        if (Tone.Transport.state !== 'started') {
+            Tone.Transport.start();
+        } else {
+            Tone.Transport.stop();
+        }
+    });
+
+    Tone.Transport.start();
+
+
+</script>
+</body>
+</html>
