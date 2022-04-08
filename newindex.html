@@ -64,13 +64,6 @@
     const VChord5 = constructMajorChord(CMajorScale, 5, 'G5');
     const VIChord5 = constructMajorChord(CMajorScale, 5, 'A5');
 
-    const synth = new Tone.PolySynth(Tone.Synth, {
-        oscillator : {
-            type : "sawtooth"
-        }
-    }).toDestination();
-
-    Tone.Transport.bpm.value = 80;
 
     function weightedRandom(weightedNotes) {
         const totalWeight = _.sum(weightedNotes.map( n => n[1]));
@@ -86,21 +79,31 @@
 
     const numbers = (count) => { return [ ... Array(count).keys() ] }
 
-    const chordLength = "1n";
+    const chordSynth = new Tone.PolySynth(Tone.Synth, {
+        oscillator : { type : "sawtooth" }
+    }).toDestination();
+    chordSynth.volume.value = -10;
+
+    const chordLength = "2n";
     const chordRepeat = (time) => {
         const weightedChords = [
             [IChord3, 9], [IIChord3, 2], [IIIChord3, 3], [IVChord3, 8], [VChord3, 8], [VIChord3, 6],
             [IChord4, 27], [IIChord4, 18], [IIIChord4, 16], [IVChord4, 27], [VChord4, 30], [VIChord4, 32],
         ];
 
-        synth.triggerAttackRelease(weightedRandom(weightedChords), chordLength, time);
+        chordSynth.triggerAttackRelease(weightedRandom(weightedChords), chordLength, time);
     }
+
+    const melodySynth = new Tone.PolySynth(Tone.Synth, {
+        oscillator : { type : "sine" }
+    }).toDestination();
 
     const melodyLength = "4n";
     const melodyRepeat = (time) => {
         const weightedNotes = [ ["A5", 7], ["B5", 4], ["C5", 15], ["D5", 4], ["E5", 10], ["F5", 10], ["G5", 10] ];
         const weightedLength = [ ["4n", 10], ["2n", 2], ["8n", 2] ];
-        synth.triggerAttackRelease(weightedRandom(weightedNotes), chordLength, time);
+        // console.log("Time is "+time);
+        melodySynth.triggerAttackRelease(weightedRandom(weightedNotes), melodyLength, time);
         // synth.triggerAttackRelease(weightedRandom(weightedNotes), weightedRandom(weightedLength), time);
     }
 
@@ -112,10 +115,11 @@
         }
     });
 
+    Tone.Transport.bpm.value = 80;
     Tone.Transport.scheduleRepeat(chordRepeat, chordLength);
     Tone.Transport.scheduleRepeat(melodyRepeat, melodyLength);
 
-    // Tone.Transport.start();
+    Tone.Transport.start();
 
 
 </script>
