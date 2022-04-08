@@ -70,13 +70,7 @@
         }
     }).toDestination();
 
-    Tone.Transport.bpm.value = 150;
-
-    const weightedNotes = [
-        [IChord3, 9], [IIChord3, 2], [IIIChord3, 3], [IVChord3, 8], [VChord3, 8], [VIChord3, 6],
-        [IChord4, 27], [IIChord4, 18], [IIIChord4, 16], [IVChord4, 27], [VChord4, 30], [VIChord4, 32],
-        [IChord5, 9], [IIChord5, 2], [IIIChord5, 3], [IVChord5, 8], [VChord5, 8], [VIChord5, 6],
-    ];
+    Tone.Transport.bpm.value = 80;
 
     function weightedRandom(weightedNotes) {
         const totalWeight = _.sum(weightedNotes.map( n => n[1]));
@@ -92,14 +86,23 @@
 
     const numbers = (count) => { return [ ... Array(count).keys() ] }
 
-    const weightedChords = numbers(8).map(n => {
-        return {'time': n, 'note': weightedRandom(weightedNotes), 'duration': '2n'}
-    });
+    const chordLength = "1n";
+    const chordRepeat = (time) => {
+        const weightedChords = [
+            [IChord3, 9], [IIChord3, 2], [IIIChord3, 3], [IVChord3, 8], [VChord3, 8], [VIChord3, 6],
+            [IChord4, 27], [IIChord4, 18], [IIIChord4, 16], [IVChord4, 27], [VChord4, 30], [VIChord4, 32],
+        ];
 
+        synth.triggerAttackRelease(weightedRandom(weightedChords), chordLength, time);
+    }
 
-    const part = new Tone.Part(function(time, note) {
-        synth.triggerAttackRelease(note.note, note.duration, time);
-    }, weightedChords).start(0);
+    const melodyLength = "4n";
+    const melodyRepeat = (time) => {
+        const weightedNotes = [ ["A5", 7], ["B5", 4], ["C5", 15], ["D5", 4], ["E5", 10], ["F5", 10], ["G5", 10] ];
+        const weightedLength = [ ["4n", 10], ["2n", 2], ["8n", 2] ];
+        synth.triggerAttackRelease(weightedRandom(weightedNotes), chordLength, time);
+        // synth.triggerAttackRelease(weightedRandom(weightedNotes), weightedRandom(weightedLength), time);
+    }
 
     document.getElementById("play-button").addEventListener("click", function() {
         if (Tone.Transport.state !== 'started') {
@@ -109,7 +112,10 @@
         }
     });
 
-    Tone.Transport.start();
+    Tone.Transport.scheduleRepeat(chordRepeat, chordLength);
+    Tone.Transport.scheduleRepeat(melodyRepeat, melodyLength);
+
+    // Tone.Transport.start();
 
 
 </script>
