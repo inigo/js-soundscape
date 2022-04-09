@@ -131,13 +131,26 @@
         }
     }
 
+    class PercussionPlayer {
+        #cymbalSynth;
+        constructor() {
+            this.#cymbalSynth = new Tone.MetalSynth().toDestination();
+            this.#cymbalSynth.volume.value = +20;
+        }
+        addNote(time) {
+            this.#cymbalSynth.triggerAttackRelease("C2", "4n", time);
+        }
+    }
+
     const chordPlayer = new ChordPlayer();
     const melodyPlayer = new MelodyPlayer("1n");
+    const percussionPlayer = new PercussionPlayer();
     const combinedRepeat = (time) => {
         const beatSeconds = Tone.Time("8n").toSeconds();
 
         const [chordOne, chordTwo] = [chordPlayer.addNote(time), chordPlayer.addNote(time+4*beatSeconds)];
         melodyPlayer.addNotes(time, chordOne.map(notesOnly), chordTwo.map(notesOnly));
+        // percussionPlayer.addNote(time);
     }
 
     document.getElementById("play-button").addEventListener("click", function() {
