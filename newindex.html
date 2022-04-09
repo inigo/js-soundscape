@@ -77,34 +77,52 @@
         return n.at(-1);
     }
 
-    const numbers = (count) => { return [ ... Array(count).keys() ] }
-
-    const chordSynth = new Tone.PolySynth(Tone.Synth, {
-        oscillator : { type : "sawtooth" }
-    }).toDestination();
-    chordSynth.volume.value = -10;
-
-    const chordLength = "2n";
-    const chordRepeat = (time) => {
-        const weightedChords = [
+    class ChordPlayer {
+        #chordSynth;
+        #weightedChords = [
             [IChord3, 9], [IIChord3, 2], [IIIChord3, 3], [IVChord3, 8], [VChord3, 8], [VIChord3, 6],
             [IChord4, 27], [IIChord4, 18], [IIIChord4, 16], [IVChord4, 27], [VChord4, 30], [VIChord4, 32],
         ];
+        #chordLength = "2n";
 
-        chordSynth.triggerAttackRelease(weightedRandom(weightedChords), chordLength, time);
+        constructor() {
+            this.#chordSynth = new Tone.PolySynth(Tone.Synth, {
+                oscillator : { type : "sawtooth" }
+            }).toDestination();
+            this.#chordSynth.volume.value = -10;
+        }
+        addNote(time) {
+            const chord = weightedRandom(this.#weightedChords);
+            this.#chordSynth.triggerAttackRelease(chord, this.#chordLength, time);
+            return chord;
+        }
     }
 
-    const melodySynth = new Tone.PolySynth(Tone.Synth, {
-        oscillator : { type : "sine" }
-    }).toDestination();
+    class MelodyPlayer {
+        #melodySynth;
+        #weightedNotes = [ ["A5", 7], ["B5", 4], ["C5", 15], ["D5", 4], ["E5", 10], ["F5", 10], ["G5", 10] ];
+        #melodyLength = "4n";
 
-    const melodyLength = "4n";
-    const melodyRepeat = (time) => {
-        const weightedNotes = [ ["A5", 7], ["B5", 4], ["C5", 15], ["D5", 4], ["E5", 10], ["F5", 10], ["G5", 10] ];
-        const weightedLength = [ ["4n", 10], ["2n", 2], ["8n", 2] ];
-        // console.log("Time is "+time);
-        melodySynth.triggerAttackRelease(weightedRandom(weightedNotes), melodyLength, time);
-        // synth.triggerAttackRelease(weightedRandom(weightedNotes), weightedRandom(weightedLength), time);
+        constructor() {
+            this.#melodySynth = new Tone.PolySynth(Tone.Synth, {
+                oscillator : { type : "sine" }
+            }).toDestination();
+        }
+        addNote(time) {
+            const weightedLength = [ ["4n", 10], ["2n", 2], ["8n", 2] ];
+            const note = weightedRandom(this.#weightedNotes);
+            this.#melodySynth.triggerAttackRelease(note, this.#melodyLength, time);
+        }
+    }
+
+    const chordPlayer = new ChordPlayer();
+    const melodyPlayer = new MelodyPlayer();
+
+    const combinedRepeat = (time) => {
+        const beatSeconds = Tone.Time("4n").toSeconds();
+
+        const [chordOne, chordTwo] = [chordPlayer.addNote(time), chordPlayer.addNote(time+2*beatSeconds)];
+        [melodyPlayer.addNote(time), melodyPlayer.addNote(time+beatSeconds), melodyPlayer.addNote(time+2*beatSeconds), melodyPlayer.addNote(time+3*beatSeconds)];
     }
 
     document.getElementById("play-button").addEventListener("click", function() {
@@ -115,10 +133,8 @@
         }
     });
 
-    Tone.Transport.bpm.value = 80;
-    Tone.Transport.scheduleRepeat(chordRepeat, chordLength);
-    Tone.Transport.scheduleRepeat(melodyRepeat, melodyLength);
-
+    Tone.Transport.bpm.value = 120;
+    Tone.Transport.scheduleRepeat(combinedRepeat, "1n");
     Tone.Transport.start();
 
 
