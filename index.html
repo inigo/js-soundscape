@@ -87,9 +87,7 @@
         #chordLength = "2n";
 
         constructor() {
-            this.#chordSynth = new Tone.PolySynth(Tone.Synth, {
-                oscillator : { type : "sawtooth" }
-            }).toDestination();
+            this.#chordSynth = SampleLibrary.load({ instruments: "bass-electric" }).toDestination()
             this.#chordSynth.volume.value = -10;
         }
         addNote(time) {
@@ -105,9 +103,6 @@
 
         constructor() {
             this.#melodySynth = SampleLibrary.load({ instruments: "violin" }).toDestination()
-            // this.#melodySynth = new Tone.PolySynth(Tone.Synth, {
-            //     oscillator : { type : "sine" }
-            // }).toDestination();
         }
         addNote(time, length) {
             const note = weightedRandom(this.#weightedNotes);
