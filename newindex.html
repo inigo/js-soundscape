@@ -8,6 +8,7 @@
 <body>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.38/Tone.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/lodash@4.17.21/lodash.min.js"></script>
+<script src="Tonejs-Instruments.js"></script>
 
 <button id="play-button">Play/Pause</button>
 <script>
@@ -103,9 +104,10 @@
         #weightedNotes = [ ["A5", 7], ["B5", 4], ["C5", 15], ["D5", 4], ["E5", 10], ["F5", 10], ["G5", 10] ];
 
         constructor() {
-            this.#melodySynth = new Tone.PolySynth(Tone.Synth, {
-                oscillator : { type : "sine" }
-            }).toDestination();
+            this.#melodySynth = SampleLibrary.load({ instruments: "violin" }).toDestination()
+            // this.#melodySynth = new Tone.PolySynth(Tone.Synth, {
+            //     oscillator : { type : "sine" }
+            // }).toDestination();
         }
         addNote(time, length) {
             const note = weightedRandom(this.#weightedNotes);
