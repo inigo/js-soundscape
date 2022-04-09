@@ -21,8 +21,6 @@
         const noteOctaveNumber = scale.indexOf(note) < firstOctaveNoteIndex ? octaveNumber - 1 : octaveNumber;
         return `${note}${noteOctaveNumber}`
     });
-    const CMajorScaleWithOctave = addOctaveNumbers(CMajorScale, 4); //  Output ['C4', 'D4', 'E4', 'F4', 'G4', 'A4', 'B4'];
-
 
     const constructMajorChord = (scale, octave, rootNote) => {
         const scaleWithOctave = addOctaveNumbers(scale, octave);
@@ -46,25 +44,6 @@
         return [rootNote, thirdNote, fifthNote];
     }
 
-    const IChord3 = constructMajorChord(CMajorScale, 3, 'C3');
-    const IIChord3 = constructMajorChord(CMajorScale, 3, 'D3');
-    const IIIChord3 = constructMajorChord(CMajorScale, 3, 'E3');
-    const IVChord3 = constructMajorChord(CMajorScale, 3, 'F3');
-    const VChord3 = constructMajorChord(CMajorScale, 3, 'G3');
-    const VIChord3 = constructMajorChord(CMajorScale, 3, 'A3');
-    const IChord4 = constructMajorChord(CMajorScale, 4, 'C4');
-    const IIChord4 = constructMajorChord(CMajorScale, 4, 'D4');
-    const IIIChord4 = constructMajorChord(CMajorScale, 4, 'E4');
-    const IVChord4 = constructMajorChord(CMajorScale, 4, 'F4');
-    const VChord4 = constructMajorChord(CMajorScale, 4, 'G4');
-    const VIChord4 = constructMajorChord(CMajorScale, 4, 'A4');
-    const IChord5 = constructMajorChord(CMajorScale, 5, 'C5');
-    const IIChord5 = constructMajorChord(CMajorScale, 5, 'D5');
-    const IIIChord5 = constructMajorChord(CMajorScale, 5, 'E5');
-    const IVChord5 = constructMajorChord(CMajorScale, 5, 'F5');
-    const VChord5 = constructMajorChord(CMajorScale, 5, 'G5');
-    const VIChord5 = constructMajorChord(CMajorScale, 5, 'A5');
-
 
     function weightedRandom(weightedNotes) {
         const totalWeight = _.sum(weightedNotes.map( n => n[1]));
@@ -82,9 +61,21 @@
 
     class ChordPlayer {
         #chordSynth;
+        #IChord3 = constructMajorChord(CMajorScale, 3, 'C3');
+        #IIChord3 = constructMajorChord(CMajorScale, 3, 'D3');
+        #IIIChord3 = constructMajorChord(CMajorScale, 3, 'E3');
+        #IVChord3 = constructMajorChord(CMajorScale, 3, 'F3');
+        #VChord3 = constructMajorChord(CMajorScale, 3, 'G3');
+        #VIChord3 = constructMajorChord(CMajorScale, 3, 'A3');
+        #IChord4 = constructMajorChord(CMajorScale, 4, 'C4');
+        #IIChord4 = constructMajorChord(CMajorScale, 4, 'D4');
+        #IIIChord4 = constructMajorChord(CMajorScale, 4, 'E4');
+        #IVChord4 = constructMajorChord(CMajorScale, 4, 'F4');
+        #VChord4 = constructMajorChord(CMajorScale, 4, 'G4');
+        #VIChord4 = constructMajorChord(CMajorScale, 4, 'A4');        
         #weightedChords = [
-            [IChord3, 9], [IIChord3, 2], [IIIChord3, 3], [IVChord3, 8], [VChord3, 8], [VIChord3, 6],
-            [IChord4, 27], [IIChord4, 18], [IIIChord4, 16], [IVChord4, 27], [VChord4, 30], [VIChord4, 32],
+            [this.#IChord3, 9], [this.#IIChord3, 2], [this.#IIIChord3, 3], [this.#IVChord3, 8], [this.#VChord3, 8], [this.#VIChord3, 6],
+            [this.#IChord4, 27], [this.#IIChord4, 18], [this.#IIIChord4, 16], [this.#IVChord4, 27], [this.#VChord4, 30], [this.#VIChord4, 32],
         ];
         #chordLength = "2n";
 
