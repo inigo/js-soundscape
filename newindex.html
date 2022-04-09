@@ -101,17 +101,15 @@
     class MelodyPlayer {
         #melodySynth;
         #weightedNotes = [ ["A5", 7], ["B5", 4], ["C5", 15], ["D5", 4], ["E5", 10], ["F5", 10], ["G5", 10] ];
-        #melodyLength = "4n";
 
         constructor() {
             this.#melodySynth = new Tone.PolySynth(Tone.Synth, {
                 oscillator : { type : "sine" }
             }).toDestination();
         }
-        addNote(time) {
-            const weightedLength = [ ["4n", 10], ["2n", 2], ["8n", 2] ];
+        addNote(time, length) {
             const note = weightedRandom(this.#weightedNotes);
-            this.#melodySynth.triggerAttackRelease(note, this.#melodyLength, time);
+            this.#melodySynth.triggerAttackRelease(note, length, time);
         }
     }
 
@@ -119,10 +117,28 @@
     const melodyPlayer = new MelodyPlayer();
 
     const combinedRepeat = (time) => {
-        const beatSeconds = Tone.Time("4n").toSeconds();
+        const beatSeconds = Tone.Time("8n").toSeconds();
 
-        const [chordOne, chordTwo] = [chordPlayer.addNote(time), chordPlayer.addNote(time+2*beatSeconds)];
-        [melodyPlayer.addNote(time), melodyPlayer.addNote(time+beatSeconds), melodyPlayer.addNote(time+2*beatSeconds), melodyPlayer.addNote(time+3*beatSeconds)];
+        const [chordOne, chordTwo] = [chordPlayer.addNote(time), chordPlayer.addNote(time+4*beatSeconds)];
+
+        // We have 1n, so these must fill up 1n - note that these are fractions
+        const weightedMelodyLengths = [
+            [ ["4n", "4n", "4n", "4n"], 10 ],
+            [ ["4n", "4n", "2n"], 10 ],
+            [ ["4n", "8n", "8n", "8n", "8n", "4n"], 10 ],
+            [ ["8n", "8n", "8n", "8n", "2n"], 10 ],
+
+            [ ["4n", "8n", "8n", "8n", "8n"], 5 ], // Pause at the end
+            [ ["4n", "2n"], 5 ], // Pause at the end
+        ]
+        const melodyLengths = weightedRandom(weightedMelodyLengths);
+
+        let secondsSoFar = 0;
+        for (const noteLength of melodyLengths) {
+            melodyPlayer.addNote(time+secondsSoFar, noteLength);
+            const noteTimeSeconds = Tone.Time(noteLength).toSeconds();
+            secondsSoFar += noteTimeSeconds;
+        }
     }
 
     document.getElementById("play-button").addEventListener("click", function() {
