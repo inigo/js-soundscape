@@ -124,7 +124,7 @@
             }
         }
         addNote(time, length, biasTowardsNotes) {
-            const notes = [... this.#weightedNotes].map(n => biasTowardsNotes.includes(notesOnly(n[0])) ? [ n[0], n[1]+10 ] : n);
+            const notes = [... this.#weightedNotes].map(n => biasTowardsNotes.includes(notesOnly(n[0])) ? [ n[0], n[1]*1.5 ] : n);
             const note = weightedRandom(notes);
             console.debug("Queueing note "+note+" for "+length);
             this.#melodySynth.triggerAttackRelease(note, length, time);
