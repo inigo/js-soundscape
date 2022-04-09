@@ -78,6 +78,8 @@
         return n.at(-1);
     }
 
+    function notesOnly(c) { return c.replaceAll(/[^A-G]/g, ""); }
+
     class ChordPlayer {
         #chordSynth;
         #weightedChords = [
@@ -92,50 +94,59 @@
         }
         addNote(time) {
             const chord = weightedRandom(this.#weightedChords);
+            console.debug("Queueing chord "+chord);
             this.#chordSynth.triggerAttackRelease(chord, this.#chordLength, time);
             return chord;
         }
     }
 
     class MelodyPlayer {
+        #lengthToFill;
         #melodySynth;
         #weightedNotes = [ ["A5", 7], ["B5", 4], ["C5", 15], ["D5", 4], ["E5", 10], ["F5", 10], ["G5", 10] ];
 
-        constructor() {
-            this.#melodySynth = SampleLibrary.load({ instruments: "violin" }).toDestination()
-        }
-        addNote(time, length) {
-            const note = weightedRandom(this.#weightedNotes);
-            this.#melodySynth.triggerAttackRelease(note, length, time);
-        }
-    }
-
-    const chordPlayer = new ChordPlayer();
-    const melodyPlayer = new MelodyPlayer();
-
-    const combinedRepeat = (time) => {
-        const beatSeconds = Tone.Time("8n").toSeconds();
-
-        const [chordOne, chordTwo] = [chordPlayer.addNote(time), chordPlayer.addNote(time+4*beatSeconds)];
-
         // We have 1n, so these must fill up 1n - note that these are fractions
-        const weightedMelodyLengths = [
-            [ ["4n", "4n", "4n", "4n"], 10 ],
+        #weightedMelodyLengths = [
+            [ ["4n", "4n", "4n", "4n"], 20 ],
             [ ["4n", "4n", "2n"], 10 ],
             [ ["4n", "8n", "8n", "8n", "8n", "4n"], 10 ],
             [ ["8n", "8n", "8n", "8n", "2n"], 10 ],
 
             [ ["4n", "8n", "8n", "8n", "8n"], 5 ], // Pause at the end
             [ ["4n", "2n"], 5 ], // Pause at the end
-        ]
-        const melodyLengths = weightedRandom(weightedMelodyLengths);
+        ];
 
-        let secondsSoFar = 0;
-        for (const noteLength of melodyLengths) {
-            melodyPlayer.addNote(time+secondsSoFar, noteLength);
-            const noteTimeSeconds = Tone.Time(noteLength).toSeconds();
-            secondsSoFar += noteTimeSeconds;
+        constructor(lengthToFill = "1n") {
+            this.#melodySynth = SampleLibrary.load({ instruments: "violin" }).toDestination()
+            this.#lengthToFill = lengthToFill;
         }
+        addNotes(time, firstChord, secondChord) {
+            const secondsToFill = Tone.Time(this.#lengthToFill).toSeconds()
+
+            const melodyLengths = weightedRandom(this.#weightedMelodyLengths);
+            let secondsSoFar = 0;
+            for (const noteLength of melodyLengths) {
+                const isFirstChord = secondsSoFar < secondsToFill / 2;
+                this.addNote(time+secondsSoFar, noteLength, isFirstChord ? firstChord : secondChord);
+                const noteTimeSeconds = Tone.Time(noteLength).toSeconds();
+                secondsSoFar += noteTimeSeconds;
+            }
+        }
+        addNote(time, length, biasTowardsNotes) {
+            const notes = [... this.#weightedNotes].map(n => biasTowardsNotes.includes(notesOnly(n[0])) ? [ n[0], n[1]+10 ] : n);
+            const note = weightedRandom(notes);
+            console.debug("Queueing note "+note+" for "+length);
+            this.#melodySynth.triggerAttackRelease(note, length, time);
+        }
+    }
+
+    const chordPlayer = new ChordPlayer();
+    const melodyPlayer = new MelodyPlayer("1n");
+    const combinedRepeat = (time) => {
+        const beatSeconds = Tone.Time("8n").toSeconds();
+
+        const [chordOne, chordTwo] = [chordPlayer.addNote(time), chordPlayer.addNote(time+4*beatSeconds)];
+        melodyPlayer.addNotes(time, chordOne.map(notesOnly), chordTwo.map(notesOnly));
     }
 
     document.getElementById("play-button").addEventListener("click", function() {
