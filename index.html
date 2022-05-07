@@ -81,6 +81,7 @@
 
         constructor() {
             this.#chordSynth = SampleLibrary.load({ instruments: "bass-electric" }).toDestination()
+            // this.#chordSynth = new Tone.PolySynth(Tone.Synth, {oscillator : {type : "sawtooth"}}).toDestination();
             this.#chordSynth.volume.value = -10;
         }
         addNote(time) {
@@ -108,7 +109,10 @@
         ];
 
         constructor(lengthToFill = "1n") {
-            this.#melodySynth = SampleLibrary.load({ instruments: "violin" }).toDestination()
+            // const chorus = new Tone.Chorus(4, 10, 5).toDestination();
+            const reverb = new Tone.Freeverb(0.85, 4000).toDestination();
+            this.#melodySynth = SampleLibrary.load({instruments: "violin"}).connect(reverb);
+            // this.#melodySynth = new Tone.PluckSynth().toDestination();
             this.#lengthToFill = lengthToFill;
         }
         addNotes(time, firstChord, secondChord) {
