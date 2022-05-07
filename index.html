@@ -136,13 +136,33 @@
     }
 
     class PercussionPlayer {
-        #cymbalSynth;
+        #kickDrumSynth;
+        #drumSynth;
         constructor() {
-            this.#cymbalSynth = new Tone.MetalSynth().toDestination();
-            this.#cymbalSynth.volume.value = +20;
+            const reverb = new Tone.Freeverb(0.75, 8000).toDestination();
+            this.#kickDrumSynth = new Tone.MembraneSynth({
+                volume: 2
+            }).connect(reverb);
+
+            const lowPass = new Tone.Filter({ frequency: 6000 }).toDestination();
+            this.#drumSynth = new Tone.NoiseSynth({
+                volume: 4,
+                noise: {type: 'brown',},
+                envelope: {
+                    attack: 0.02,
+                    decay: 0.05,
+                    sustain: 0.01,
+                    release: 0.03,
+                },
+            }).connect(lowPass);
         }
-        addNote(time) {
-            this.#cymbalSynth.triggerAttackRelease("C2", "4n", time);
+        addNote(time, beatSeconds) {
+            this.#kickDrumSynth.triggerAttackRelease("C2", "4n", time);
+
+            // this.#drumSynth.triggerAttackRelease("8n", time);
+            this.#drumSynth.triggerAttackRelease("8n", time+2*beatSeconds);
+            this.#drumSynth.triggerAttackRelease("8n", time+4*beatSeconds);
+            this.#drumSynth.triggerAttackRelease("8n", time+6*beatSeconds);
         }
     }
 
@@ -154,7 +174,7 @@
 
         const [chordOne, chordTwo] = [chordPlayer.addNote(time), chordPlayer.addNote(time+4*beatSeconds)];
         melodyPlayer.addNotes(time, chordOne.map(notesOnly), chordTwo.map(notesOnly));
-        // percussionPlayer.addNote(time);
+        percussionPlayer.addNote(time, beatSeconds);
     }
 
     document.getElementById("play-button").addEventListener("click", function() {
